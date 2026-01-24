@@ -5,20 +5,20 @@
   "license": "MIT",
   "author": "George Gayton",
   "type": "module",
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "exports": {
     ".": {
       "require": {
-        "types": "./dist/index.d.cts",
-        "default": "./dist/index.cjs"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       },
       "import": {
-        "types": "./dist/index.d.ts",
-        "default": "./dist/index.js"
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
       }
     }
   },
-  "types": "./dist/index.d.ts",
+  "types": "./dist/index.d.mts",
   "files": [
     "dist/index.js",
     "dist/index.cjs",
