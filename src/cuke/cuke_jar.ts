@@ -2,30 +2,36 @@ import { Cuke } from "./cuke"
 
 export class CukeJar {
 
-    private _file_map: Map<string, Cuke[]> = new Map<string, Cuke[]>();
+    private _fileMap: Map<string, Cuke[]> = new Map<string, Cuke[]>();
 
     public count(): number {
-        return this._file_map
+        return this._fileMap
             .values()
             .map((x: Cuke[]) => x.length)
             .reduce((a: number, b:number) => a + b);
     }
 
     public all(): IteratorObject<[string, Cuke]> {
-        return this._file_map
+        return this._fileMap
             .entries()
             .flatMap(([fileName, items]) =>
                 items.map((item) => [fileName, item]));
     }
 
+    public ofFile(fileName: string): MapIterator<Cuke> | undefined {
+        return this._fileMap
+            .get(fileName)
+            ?.values()
+    }
+
     public values(): IteratorObject<Cuke> {
-        return this._file_map
+        return this._fileMap
             .values()
             .flatMap((value) => value);
     }
 
     public updateFile(fileName: string, items: Cuke[]) {
-        this._file_map.set(fileName, items);
+        this._fileMap.set(fileName, items);
     }
 
     public find(gherk: string): [string, Cuke] | undefined {

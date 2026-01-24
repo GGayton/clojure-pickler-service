@@ -22,7 +22,7 @@ const tests = [
   {
     cukeFileName: "chaos.clj",
     gherkFileName: "chaos.feature",
-    expectedNumCukes: 7,
+    expectedNumCukes: 20,
     expectedNumGherks: 20,
   }
 ]
@@ -37,7 +37,14 @@ describe('e2e', () => {
       const result = parser.parse(sourceCode);
       cukeJar.updateFile(test.cukeFileName, result);
 
-      assert.equal(cukeJar.count(), test.expectedNumCukes)
+      const count = cukeJar
+        .ofFile(test.cukeFileName)
+        ?.toArray()
+        .length;
+
+      assert.equal(
+        count,
+        test.expectedNumCukes)
       logger.info(`Loaded ${cukeJar.count()} step(s) from ${test.cukeFileName}`);
     }
   })
@@ -52,13 +59,35 @@ describe('e2e', () => {
       const gherks = toGherks(result.gherkinDocument!);
       gherkJar.updateFile(test.gherkFileName, gherks);
 
-      assert.equal(gherkJar.count(), test.expectedNumGherks)
+      const count = gherkJar
+        .ofFile(test.gherkFileName)
+        ?.toArray()
+        .length;
+
+      assert.equal(
+        count,
+        test.expectedNumGherks)
     }
   })
 
   it('links wario_brothers gherks', () => {
-
     const test = tests[0]!;
+
+    const gherks = gherkJar.ofFile(test.gherkFileName)?.toArray();
+    assert.notEqual(gherks, undefined, "Failed to get gherks");
+
+    const results = linkAll(cukeJar, gherks!);
+
+    const success = results.filter((result) => result instanceof LinkSuccess)
+    const failure = results.filter((result) => result instanceof LinkFailure)
+
+    assert.equal(failure.length, 0, "Failed to link some steps")
+    assert.equal(success.length, 7, "Failed to link some steps")
+  })
+
+  it('links chaos gherks', () => {
+
+    const test = tests[1]!;
 
     const gherks = gherkJar.ofFile(test.gherkFileName)?.toArray();
     assert.notEqual(gherks, undefined, "Failed to get gherks");
