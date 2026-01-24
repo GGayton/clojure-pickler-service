@@ -1,38 +1,37 @@
-import { Location } from "../common";
+import type { Location } from "../common.js";
 
 export interface Gherk extends Location {
-    getExpressions(): Generator<string>
+	getExpressions(): Generator<string>;
 }
 
-
 export class MonoGherk implements Gherk {
-    expression: string;
-    line: number;
-    column: number;
+	expression: string;
+	line: number;
+	column: number;
 
-    constructor(expression: string, line: number, column: number) {
-        this.expression = expression;
-        this.line = line;
-        this.column = column;
-    }
+	constructor(expression: string, line: number, column: number) {
+		this.expression = expression;
+		this.line = line;
+		this.column = column;
+	}
 
-    *getExpressions(): Generator<string> {
-        yield this.expression;
-    }
+	*getExpressions(): Generator<string> {
+		yield this.expression;
+	}
 }
 
 export class MultiGherk implements Gherk {
-    expressions: string[];
-    line: number;
-    column: number;
+	expressions: string[];
+	line: number;
+	column: number;
 
-    constructor(expressions: string[], line: number, column: number){
-        this.expressions = expressions
-        this.line = line
-        this.column = column
-    }
+	constructor(expressions: string[], line: number, column: number) {
+		this.expressions = expressions;
+		this.line = line;
+		this.column = column;
+	}
 
-    *getExpressions(): Generator<string> {
-        yield* this.expressions
-    }
+	*getExpressions(): Generator<string> {
+		yield* this.expressions;
+	}
 }

@@ -1,111 +1,107 @@
-import * as fs from 'fs';
-import { CukeParser } from '../cuke/cuke_parser'
-import { parseGherkinDocument, ParseResult, toGherks } from '../gherk/gherk_parser';
-import { CukeJar } from '../cuke/cuke_jar';
-import assert from 'assert';
-import { GherkJar } from '../gherk/gherk_jar';
-import { linkAll, LinkFailure, LinkSuccess } from '../linker';
-import { logger } from '../logger';
+import * as fs from "fs";
 
+import { CukeParser } from "../cuke/cuke_parser.js";
+import { describe, expect, it } from "vitest";
+import {
+	parseGherkinDocument,
+	type ParseResult,
+	toGherks,
+} from "../gherk/gherk_parser.js";
+import { CukeJar } from "../cuke/cuke_jar.js";
+import { GherkJar } from "../gherk/gherk_jar.js";
+import { linkAll, LinkFailure, LinkSuccess } from "../linker.js";
+import { logger } from "../logger.js";
 
 const cukeJar = new CukeJar();
 const gherkJar = new GherkJar();
 const parser = CukeParser.instance;
 
 const tests = [
-  {
-    cukeFileName: "wario_brothers.clj",
-    gherkFileName: "wario_brothers.feature",
-    expectedNumCukes: 7,
-    expectedNumGherks: 7,
-  },
-  {
-    cukeFileName: "chaos.clj",
-    gherkFileName: "chaos.feature",
-    expectedNumCukes: 20,
-    expectedNumGherks: 20,
-  }
-]
+	{
+		cukeFileName: "wario_brothers.clj",
+		gherkFileName: "wario_brothers.feature",
+		expectedNumCukes: 7,
+		expectedNumGherks: 7,
+	},
+	{
+		cukeFileName: "chaos.clj",
+		gherkFileName: "chaos.feature",
+		expectedNumCukes: 20,
+		expectedNumGherks: 20,
+	},
+];
 
+describe("e2e", () => {
+	it("populates the cuke jar", () => {
+		for (const test of tests) {
+			const sourceCode = fs.readFileSync(
+				`./resources/${test.cukeFileName}`,
+				"utf8",
+			);
+			const result = parser.parse(sourceCode);
+			cukeJar.updateFile(test.cukeFileName, result);
 
-describe('e2e', () => {
+			const count = cukeJar.ofFile(test.cukeFileName)?.toArray().length;
 
-  it('populates the cuke jar', () => {
+			expect(count).toBe(test.expectedNumCukes);
+			logger.info(
+				`Loaded ${cukeJar.count()} step(s) from ${test.cukeFileName}`,
+			);
+		}
+	});
 
-    for (const test of tests) {
-      const sourceCode = fs.readFileSync(`./resources/${test.cukeFileName}`, 'utf8');
-      const result = parser.parse(sourceCode);
-      cukeJar.updateFile(test.cukeFileName, result);
+	it("populates the gherk jar", () => {
+		for (const test of tests) {
+			const sourceCode = fs.readFileSync(
+				`./resources/${test.gherkFileName}`,
+				"utf8",
+			);
+			const result: ParseResult = parseGherkinDocument(sourceCode);
 
-      const count = cukeJar
-        .ofFile(test.cukeFileName)
-        ?.toArray()
-        .length;
+			expect(result).toBeDefined();
 
-      assert.equal(
-        count,
-        test.expectedNumCukes)
-      logger.info(`Loaded ${cukeJar.count()} step(s) from ${test.cukeFileName}`);
-    }
-  })
+			const gherks = toGherks(result.gherkinDocument!);
+			gherkJar.updateFile(test.gherkFileName, gherks);
 
-  it('populates the gherk jar', () => {
-    for (const test of tests) {
-      const sourceCode = fs.readFileSync(`./resources/${test.gherkFileName}`, 'utf8');
-      const result: ParseResult = parseGherkinDocument(sourceCode);
+			const count = gherkJar.ofFile(test.gherkFileName)?.toArray().length;
 
-      assert.notEqual(result, undefined, "Failed to parse gherkin doc")
+			expect(count).toBe(test.expectedNumGherks);
+		}
+	});
 
-      const gherks = toGherks(result.gherkinDocument!);
-      gherkJar.updateFile(test.gherkFileName, gherks);
+	it("links wario_brothers gherks", () => {
+		const test = tests[0]!;
 
-      const count = gherkJar
-        .ofFile(test.gherkFileName)
-        ?.toArray()
-        .length;
+		const gherks = gherkJar.ofFile(test.gherkFileName)?.toArray();
+		expect(gherks).toBeDefined();
 
-      assert.equal(
-        count,
-        test.expectedNumGherks)
-    }
-  })
+		const results = linkAll(cukeJar, gherks!);
 
-  it('links wario_brothers gherks', () => {
-    const test = tests[0]!;
+		const success = results.filter((result) => result instanceof LinkSuccess);
+		const failure = results.filter((result) => result instanceof LinkFailure);
 
-    const gherks = gherkJar.ofFile(test.gherkFileName)?.toArray();
-    assert.notEqual(gherks, undefined, "Failed to get gherks");
+		expect(failure).length(0, "Failed to link some steps");
+		expect(success).length(7, "Failed to link some steps");
+	});
 
-    const results = linkAll(cukeJar, gherks!);
+	it("links chaos gherks", () => {
+		const test = tests[1]!;
 
-    const success = results.filter((result) => result instanceof LinkSuccess)
-    const failure = results.filter((result) => result instanceof LinkFailure)
+		const gherks = gherkJar.ofFile(test.gherkFileName)?.toArray();
+		expect(gherks).toBeDefined();
 
-    assert.equal(failure.length, 0, "Failed to link some steps")
-    assert.equal(success.length, 7, "Failed to link some steps")
-  })
+		const results = linkAll(cukeJar, gherks!);
 
-  it('links chaos gherks', () => {
+		const success = results.filter((result) => result instanceof LinkSuccess);
+		const failure = results.filter((result) => result instanceof LinkFailure);
 
-    const test = tests[1]!;
+		expect(failure).length(5, "Failed to link some steps");
+		expect(success).length(168, "Failed to link some steps");
 
-    const gherks = gherkJar.ofFile(test.gherkFileName)?.toArray();
-    assert.notEqual(gherks, undefined, "Failed to get gherks");
-
-    const results = linkAll(cukeJar, gherks!);
-
-    const success = results.filter((result) => result instanceof LinkSuccess)
-    const failure = results.filter((result) => result instanceof LinkFailure)
-
-    assert.equal(failure.length, 5, "Failed to link some steps")
-    assert.equal(success.length, 168, "Failed to link some steps")
-
-    assert(failure
-      .map((value) => value.expression == "Waluigi consumes a \"Garlic\" power-up")
-      .length
-      ==
-      5
-    )
-  })
-})
-
+		expect(
+			failure.filter(
+				(value) => value.expression === 'Waluigi consumes a "Garlic" power-up',
+			).length,
+		).toBe(5);
+	});
+});
