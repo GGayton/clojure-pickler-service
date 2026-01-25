@@ -10,7 +10,7 @@ import {
 import { CukeJar } from "../cuke/cuke_jar.js";
 import { GherkJar } from "../gherk/gherk_jar.js";
 import { linkAll, LinkFailure, LinkSuccess } from "../linker.js";
-import { logger } from "../logger.js";
+import { logger } from "./logger.js";
 
 const cukeJar = new CukeJar();
 const gherkJar = new GherkJar();

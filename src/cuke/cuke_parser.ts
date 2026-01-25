@@ -1,7 +1,6 @@
 import Parser, { Query } from 'tree-sitter'
 import language from 'tree-sitter-clojure-orchard';
-import { Cuke } from './cuke'
-import { logger } from '../logger';
+import { Cuke } from './cuke.js'
 
 const stringLiteralQuerySource = `(list_lit
     value: (sym_lit
@@ -66,12 +65,7 @@ export class CukeParser {
 
     parse(src: string): Array<Cuke> {
 
-        logger.info(CukeParser.#id)
-
         let tree = parser.parse(src);
-         tree = parser.parse(src);
-         tree = parser.parse(src);
-
 
         if (!tree.rootNode) {
             throw new Error("ruh roh")
@@ -89,7 +83,7 @@ export class CukeParser {
     }
 
     nodesToStepDefinition(match: Parser.QueryMatch): Cuke {
-        const capture = match.captures.find((capture) => capture.name == "expression");
+        const capture = match.captures.find((capture) => capture.name === "expression");
         return Cuke.fromSyntaxNode(capture!.node);
     }
 }

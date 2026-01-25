@@ -59,7 +59,7 @@ export function parseGherkinDocument(gherkinSource: string): ParseResult {
 }
 
 // Extract headers from regexes
-const headerRegex = new RegExp("(?<=<).*?(?=>)", "g");
+const headerRegex = /(?<=<).*?(?=>)/g;
 
 export function toGherks(doc: GherkinDocument): Array<Gherk> {
 	const gherks: Array<Gherk> | undefined = doc?.feature?.children

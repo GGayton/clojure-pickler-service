@@ -1,4 +1,4 @@
-import { SyntaxNode } from "tree-sitter";
+import type { SyntaxNode } from "tree-sitter";
 
 function replaceGherkinSyntax(substring: string): string {
     switch (substring) {
@@ -8,7 +8,7 @@ function replaceGherkinSyntax(substring: string): string {
     }
 }
 
-const gherkinSyntaxRegex = new RegExp("{.*?}", "g")
+const gherkinSyntaxRegex = /{.*?}/g
 
 export class Cuke {
     expression: string;
