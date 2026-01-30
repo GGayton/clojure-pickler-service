@@ -17,8 +17,8 @@ export class GherkJar {
 		return this._fileMap.values().flatMap((map) => map.values());
 	}
 
-	public ofFile(fileName: string): MapIterator<Gherk> | undefined {
-		return this._fileMap.get(fileName)?.values();
+	public ofFile(fileName: string): Map<number, Gherk> | undefined {
+		return this._fileMap.get(fileName);
 	}
 
 	public updateFile(fileName: string, items: Gherk[]) {

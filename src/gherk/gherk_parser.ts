@@ -65,7 +65,15 @@ export function toGherks(doc: GherkinDocument): Array<Gherk> {
 	const gherks: Array<Gherk> | undefined = doc?.feature?.children
 		?.map((value) => value?.scenario)
 		?.filter((value) => value !== undefined)
+
 		?.flatMap((value) => {
+			// Line numbers are zero-indexed in clojure-pickler-service,
+			// but the parser is not.
+			value.steps.map((step) => {
+				step.location.line = step.location.line - 1;
+				return step;
+			});
+
 			switch (value.keyword) {
 				case "Scenario Outline":
 					return value.steps.map((step) => toGherk(step, value.examples[0]!));

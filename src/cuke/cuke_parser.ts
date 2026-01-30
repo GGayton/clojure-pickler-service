@@ -1,6 +1,6 @@
-import Parser, { Query } from 'tree-sitter'
-import language from 'tree-sitter-clojure-orchard';
-import { Cuke } from './cuke.js'
+import Parser, { Query } from "tree-sitter";
+import language from "tree-sitter-clojure-orchard";
+import { Cuke } from "./cuke.js";
 
 const stringLiteralQuerySource = `(list_lit
     value: (sym_lit
@@ -18,8 +18,14 @@ const regexLiteralQuerySource = `(list_lit
     value: (vec_lit)
 )`;
 
-const stringLiteralQuery = new Query(language as Parser.Language, stringLiteralQuerySource)
-const regexLiteralQuery = new Query(language as Parser.Language, regexLiteralQuerySource)
+const stringLiteralQuery = new Query(
+	language as Parser.Language,
+	stringLiteralQuerySource,
+);
+const regexLiteralQuery = new Query(
+	language as Parser.Language,
+	regexLiteralQuerySource,
+);
 
 //const stuff = `(
 //	(kwd_lit
@@ -36,54 +42,57 @@ const parser = new Parser();
 parser.setLanguage(language as Parser.Language);
 
 export class CukeParser {
+	static #instance: CukeParser;
 
-    static #instance: CukeParser;
-    static #id: number;
+	/**
+	 * The Singleton's constructor should always be private to prevent direct
+	 * construction calls with the `new` operator.
+	 */
+	private constructor() {}
 
-    /**
-     * The Singleton's constructor should always be private to prevent direct
-     * construction calls with the `new` operator.
-     */
-    private constructor() {
-     }
+	/**
+	 * The static getter that controls access to the singleton instance.
+	 *
+	 * This implementation allows you to extend the Singleton class while
+	 * keeping just one instance of each subclass around.
+	 */
+	public static get instance(): CukeParser {
+		if (!CukeParser.#instance) {
+			CukeParser.#instance = new CukeParser();
+		}
 
-    /**
-     * The static getter that controls access to the singleton instance.
-     *
-     * This implementation allows you to extend the Singleton class while
-     * keeping just one instance of each subclass around.
-     */
-    public static get instance(): CukeParser {
-        if (!CukeParser.#instance) {
-            CukeParser.#instance = new CukeParser();
-            CukeParser.#id = Math.random()
-        }
+		return CukeParser.#instance;
+	}
 
-        return CukeParser.#instance;
-    }
+	parse(src: string): Array<Cuke> {
+		const tree = parser.parse(src);
 
+		if (!tree.rootNode) {
+			throw new Error("ruh roh");
+		}
+		if (!stringLiteralQuery) throw new Error("Query is missing");
+		if (typeof stringLiteralQuery.matches !== "function")
+			throw new Error("matches is not a function");
 
-    parse(src: string): Array<Cuke> {
+		const stringLiteralMatches = stringLiteralQuery.matches(tree.rootNode);
+		const regexLiteralMatches = regexLiteralQuery.matches(tree.rootNode);
 
-        let tree = parser.parse(src);
+		return stringLiteralMatches
+			.concat(regexLiteralMatches)
+			.map(this.nodesToStepDefinition);
+	}
 
-        if (!tree.rootNode) {
-            throw new Error("ruh roh")
-        }
-        if (!stringLiteralQuery) throw new Error("Query is missing");
-        if (typeof stringLiteralQuery.matches !== 'function') throw new Error("matches is not a function");
+	nodesToStepDefinition(match: Parser.QueryMatch): Cuke {
+		const capture = match.captures.find(
+			(capture) => capture.name === "expression",
+		);
 
+		if (capture === undefined) {
+			throw new Error(
+				"tree-sitter node does not have an 'expression' group on it",
+			);
+		}
 
-        const stringLiteralMatches = stringLiteralQuery.matches(tree.rootNode)
-        const regexLiteralMatches = regexLiteralQuery.matches(tree.rootNode)
-
-        return stringLiteralMatches
-            .concat(regexLiteralMatches)
-            .map(this.nodesToStepDefinition)
-    }
-
-    nodesToStepDefinition(match: Parser.QueryMatch): Cuke {
-        const capture = match.captures.find((capture) => capture.name === "expression");
-        return Cuke.fromSyntaxNode(capture!.node);
-    }
+		return Cuke.fromSyntaxNode(capture.node);
+	}
 }
