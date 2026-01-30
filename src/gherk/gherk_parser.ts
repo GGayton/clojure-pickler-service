@@ -62,30 +62,30 @@ export function parseGherkinDocument(gherkinSource: string): ParseResult {
 const headerRegex = /(?<=<).*?(?=>)/g;
 
 export function toGherks(doc: GherkinDocument): Array<Gherk> {
-	const gherks: Array<Gherk> | undefined = doc?.feature?.children
-		?.map((value) => value?.scenario)
-		?.filter((value) => value !== undefined)
+	return (
+		doc?.feature?.children
+			?.map((value) => value?.scenario)
+			?.filter((value) => value !== undefined)
 
-		?.flatMap((value) => {
-			// Line numbers are zero-indexed in clojure-pickler-service,
-			// but the parser is not.
-			value.steps.map((step) => {
-				step.location.line = step.location.line - 1;
-				return step;
-			});
+			?.flatMap((value) => {
+				// Line numbers are zero-indexed in clojure-pickler-service,
+				// but the parser is
+				value.steps.map((step) => {
+					step.location.line = step.location.line - 1;
+					return step;
+				});
 
-			switch (value.keyword) {
-				case "Scenario Outline":
-					return value.steps.map((step) => toGherk(step, value.examples[0]!));
-				case "Scenario":
-					return value.steps.map((step) => toMonoGherk(step));
-				default:
-					return value.steps.map((step) => toMonoGherk(step));
-			}
-		})
-		?.filter((value) => value !== undefined);
-
-	return gherks!;
+				switch (value.keyword) {
+					case "Scenario Outline":
+						return value.steps.map((step) => toGherk(step, value.examples));
+					case "Scenario":
+						return value.steps.map((step) => toMonoGherk(step));
+					default:
+						return value.steps.map((step) => toMonoGherk(step));
+				}
+			})
+			?.filter((value) => value !== undefined) ?? []
+	);
 }
 
 function toMonoGherk(step: Step) {
@@ -96,37 +96,63 @@ function toMonoGherk(step: Step) {
 	);
 }
 
-type TableMatch = [match: string, index: number];
+type TableMatch = [match: string, table: Examples, index: number];
 
-function toGherk(step: Step, table: Examples): Gherk | undefined {
-	const matches: TableMatch[] = step.text
-		.matchAll(headerRegex)
-		.flatMap((value) =>
-			value.map(
-				(match) =>
-					<TableMatch>[
-						match,
-						table.tableHeader!.cells.findIndex(
-							(value) => value.value === match,
-						),
-					],
-			),
-		)
-		.toArray();
+function toGherk(step: Step, tables: readonly Examples[]): Gherk | undefined {
+	/// Ensure all tables have headers
+	if (tables.some((table) => table.tableHeader === undefined)) return undefined;
+
+	/// Fallback to mono in the case the examples table is empty
+	if (tables.length === 0) {
+		return toMonoGherk(step);
+	}
+
+	// Matches all placeholders in the text
+	const regexMatches = step.text.matchAll(headerRegex).toArray()
 
 	// this step does not contain <.*?> -> fallback to standard
-	if (matches.length === 0) return toMonoGherk(step);
+	if (regexMatches.length === 0) return toMonoGherk(step);
 
-	if (matches.filter((value) => value[1] === -1).length !== 0) return undefined;
-	if (table.tableHeader === undefined) return undefined;
+	const matches: TableMatch[][] = tables.map((table) =>
+		regexMatches
+			// Map against the tables' headers
+			.flatMap((value) =>
+				value.map(
+					// map for each table available
+					(match) =>
+						<TableMatch>[
+							match,
+							table,
+							// biome-ignore lint/style/noNonNullAssertion: We have already asserted this is notnull
+							table.tableHeader!.cells.findIndex(
+								(value) => value.value === match,
+							),
+						],
+				),
+			)
+	);
+
+
+	// Check we found an index across all tables and <.*?>
+	if (matches.some((matches) => matches.some((value) => value[2] === -1)))
+		return undefined;
 
 	return new MultiGherk(
-		table.tableBody.map((value) =>
-			// Replace all the <.*?> matches with data
-			matches.reduce(
-				(expression, [match, index]) =>
-					expression.replace(`<${match}>`, value.cells[index]?.value ?? "<??>"),
-				step.text,
+		tables.flatMap((table, tableIndex) =>
+			table.tableBody.map((value) =>
+				// Replace all the <.*?> matches with data
+
+				// biome-ignore lint/style/noNonNullAssertion: We have already asserted this is notnull
+				matches
+					.at(tableIndex)!
+					.reduce(
+						(expression, [match, , index]) =>
+							expression.replace(
+								`<${match}>`,
+								value.cells[index]?.value ?? "<??>",
+							),
+						step.text,
+					),
 			),
 		),
 		step.location.line,

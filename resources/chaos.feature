@@ -38,3 +38,7 @@ Feature: Wario and Waluigi's Chaotic Integration
       | Waluigi   | The Void       | 0           | 0          | -1.0        | nowhere  | 99          | Reality      | Paradox   | 0.0        | Nothingness    | 999          | SILENT     | NULL          | -1          | TRUE       |
       | Wario     | Treasure Ship  | 300         | 500        | 7.7         | atop     | 4           | Anchor       | Kraken    | 3.3        | Sunken Gold    | 15           | DROWNING   | FLUID         | 12000       | FALSE      |
       | Waluigi   | Kart Circuit   | 80          | 3          | 2.2         | drifting | 6           | First Place  | Blue Shell| 1.5        | Banana Peel    | 8            | SWIFT      | SLIPPERY      | 150         | FALSE      |
+
+    Examples:
+      | location     | character   | start_greed | item_count | calibration | position | shout_count | theft_target | trap_type | multiplier | loot           | twitch_count | status     | physics_state | final_score | game_state |
+      | Wario Castle | Wario       | 100         | 50         | 9.9         | behind   | 3           | The Crown    | Spike     | 1.5        | Diamond        | 12           | ACTIVE     | BROKEN        | 5000        | FALSE      |

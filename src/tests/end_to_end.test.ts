@@ -84,7 +84,7 @@ describe("e2e", () => {
 		const failure = results.filter((result) => result instanceof LinkFailure);
 
 		expect(failure).length(5, "Failed to link some steps");
-		expect(success).length(168, "Failed to link some steps");
+		expect(success).length(185, "Failed to link some steps");
 
 		expect(
 			failure.filter(
