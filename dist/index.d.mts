@@ -72,7 +72,7 @@ declare class GherkJar {
   private _fileMap;
   count(): number;
   all(): IteratorObject<Gherk>;
-  ofFile(fileName: string): MapIterator<Gherk> | undefined;
+  ofFile(fileName: string): Map<number, Gherk> | undefined;
   updateFile(fileName: string, items: Gherk[]): void;
   find(fileName: string, line: number): Gherk | undefined;
 }
@@ -88,5 +88,20 @@ type ParseResult = {
 declare function parseGherkinDocument(gherkinSource: string): ParseResult;
 declare function toGherks(doc: GherkinDocument): Array<Gherk>;
 //#endregion
-export { Cuke, CukeJar, CukeParser, Gherk, GherkJar, MonoGherk, MultiGherk, ParseResult, parseGherkinDocument, toGherks };
+//#region src/linker.d.ts
+declare class LinkSuccess {
+  cuke: Cuke;
+  gherk: Gherk;
+  fileName: string;
+  constructor(cuke: Cuke, gherk: Gherk, fileName: string);
+}
+declare class LinkFailure {
+  gherk: Gherk;
+  expression: string;
+  constructor(gherk: Gherk, expression: string);
+}
+type LinkResult = LinkSuccess | LinkFailure;
+declare function linkAll(cukeJar: CukeJar, gherks: Gherk[]): LinkResult[];
+//#endregion
+export { Cuke, CukeJar, CukeParser, Gherk, GherkJar, LinkFailure, LinkResult, LinkSuccess, MonoGherk, MultiGherk, ParseResult, linkAll, parseGherkinDocument, toGherks };
 //# sourceMappingURL=index.d.mts.map

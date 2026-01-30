@@ -23,8 +23,8 @@ var Cuke = class Cuke {
 	}
 	static fromSyntaxNode(node) {
 		switch (node.type) {
-			case "str_lit": return new Cuke(node.text.slice(1, -1), 0, 1);
-			case "regex_lit": return new Cuke(node.text.slice(2, -1), 0, 1);
+			case "str_lit": return new Cuke(node.text.slice(1, -1), node.startPosition.row, node.startPosition.column);
+			case "regex_lit": return new Cuke(node.text.slice(2, -1), node.startPosition.row, node.startPosition.column);
 			default: throw "undefined node type";
 		}
 	}
@@ -79,7 +79,6 @@ const parser = new Parser();
 parser.setLanguage(language);
 var CukeParser = class CukeParser {
 	static #instance;
-	static #id;
 	/**
 	* The Singleton's constructor should always be private to prevent direct
 	* construction calls with the `new` operator.
@@ -92,14 +91,11 @@ var CukeParser = class CukeParser {
 	* keeping just one instance of each subclass around.
 	*/
 	static get instance() {
-		if (!CukeParser.#instance) {
-			CukeParser.#instance = new CukeParser();
-			CukeParser.#id = Math.random();
-		}
+		if (!CukeParser.#instance) CukeParser.#instance = new CukeParser();
 		return CukeParser.#instance;
 	}
 	parse(src) {
-		let tree = parser.parse(src);
+		const tree = parser.parse(src);
 		if (!tree.rootNode) throw new Error("ruh roh");
 		if (!stringLiteralQuery) throw new Error("Query is missing");
 		if (typeof stringLiteralQuery.matches !== "function") throw new Error("matches is not a function");
@@ -109,6 +105,7 @@ var CukeParser = class CukeParser {
 	}
 	nodesToStepDefinition(match) {
 		const capture = match.captures.find((capture) => capture.name === "expression");
+		if (capture === void 0) throw new Error("tree-sitter node does not have an 'expression' group on it");
 		return Cuke.fromSyntaxNode(capture.node);
 	}
 };
@@ -153,7 +150,7 @@ var GherkJar = class {
 		return this._fileMap.values().flatMap((map) => map.values());
 	}
 	ofFile(fileName) {
-		return this._fileMap.get(fileName)?.values();
+		return this._fileMap.get(fileName);
 	}
 	updateFile(fileName, items) {
 		const gherkMap = new Map(items.map((gherk) => [gherk.line, gherk]));
@@ -176,6 +173,10 @@ function parseGherkinDocument(gherkinSource) {
 const headerRegex = /(?<=<).*?(?=>)/g;
 function toGherks(doc) {
 	return doc?.feature?.children?.map((value) => value?.scenario)?.filter((value) => value !== void 0)?.flatMap((value) => {
+		value.steps.map((step) => {
+			step.location.line = step.location.line - 1;
+			return step;
+		});
 		switch (value.keyword) {
 			case "Scenario Outline": return value.steps.map((step) => toGherk(step, value.examples[0]));
 			case "Scenario": return value.steps.map((step) => toMonoGherk(step));
@@ -195,5 +196,34 @@ function toGherk(step, table) {
 }
 
 //#endregion
-export { Cuke, CukeJar, CukeParser, GherkJar, MonoGherk, MultiGherk, parseGherkinDocument, toGherks };
+//#region src/linker.ts
+var LinkSuccess = class {
+	cuke;
+	gherk;
+	fileName;
+	constructor(cuke, gherk, fileName) {
+		this.cuke = cuke;
+		this.gherk = gherk;
+		this.fileName = fileName;
+	}
+};
+var LinkFailure = class {
+	gherk;
+	expression;
+	constructor(gherk, expression) {
+		this.gherk = gherk;
+		this.expression = expression;
+	}
+};
+function linkAll(cukeJar, gherks) {
+	return gherks.flatMap((gherk) => gherk.getExpressions().map((expr) => {
+		const result = cukeJar.find(expr);
+		if (result === void 0) return new LinkFailure(gherk, expr);
+		const [fileName, cuke] = result;
+		return new LinkSuccess(cuke, gherk, fileName);
+	}).toArray());
+}
+
+//#endregion
+export { Cuke, CukeJar, CukeParser, GherkJar, LinkFailure, LinkSuccess, MonoGherk, MultiGherk, linkAll, parseGherkinDocument, toGherks };
 //# sourceMappingURL=index.mjs.map
