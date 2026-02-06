@@ -172,27 +172,35 @@ function parseGherkinDocument(gherkinSource) {
 }
 const headerRegex = /(?<=<).*?(?=>)/g;
 function toGherks(doc) {
-	return doc?.feature?.children?.map((value) => value?.scenario)?.filter((value) => value !== void 0)?.flatMap((value) => {
-		value.steps.map((step) => {
-			step.location.line = step.location.line - 1;
-			return step;
-		});
-		switch (value.keyword) {
-			case "Scenario Outline": return value.steps.map((step) => toGherk(step, value.examples[0]));
-			case "Scenario": return value.steps.map((step) => toMonoGherk(step));
-			default: return value.steps.map((step) => toMonoGherk(step));
-		}
-	})?.filter((value) => value !== void 0);
+	if (!doc?.feature?.children) return [];
+	return doc.feature.children.map((value) => value.scenario).filter((scenario) => scenario !== void 0).flatMap((scenario) => {
+		const adjustedSteps = scenario.steps.map((step) => ({
+			...step,
+			location: {
+				...step.location,
+				line: step.location.line - 1
+			}
+		}));
+		if (scenario.keyword === "Scenario Outline") return adjustedSteps.map((step) => toGherk(step, scenario.examples));
+		else if (scenario.keyword === "Scenario") return adjustedSteps.map((step) => toMonoGherk(step));
+		else return;
+	}).filter((value) => value !== void 0);
 }
 function toMonoGherk(step) {
 	return new MonoGherk(step.text, step.location.line, step.location.column ?? 0);
 }
-function toGherk(step, table) {
-	const matches = step.text.matchAll(headerRegex).flatMap((value) => value.map((match) => [match, table.tableHeader.cells.findIndex((value) => value.value === match)])).toArray();
-	if (matches.length === 0) return toMonoGherk(step);
-	if (matches.filter((value) => value[1] === -1).length !== 0) return void 0;
-	if (table.tableHeader === void 0) return void 0;
-	return new MultiGherk(table.tableBody.map((value) => matches.reduce((expression, [match, index]) => expression.replace(`<${match}>`, value.cells[index]?.value ?? "<??>"), step.text)), step.location.line, step.location.column ?? 0);
+function toGherk(step, tables) {
+	if (tables.some((table) => table.tableHeader === void 0)) return void 0;
+	if (tables.length === 0) return toMonoGherk(step);
+	const regexMatches = step.text.matchAll(headerRegex).toArray();
+	if (regexMatches.length === 0) return toMonoGherk(step);
+	const matches = tables.map((table) => regexMatches.flatMap((value) => value.map((match) => [
+		match,
+		table,
+		table.tableHeader.cells.findIndex((value) => value.value === match)
+	])));
+	if (matches.some((matches) => matches.some((value) => value[2] === -1))) return void 0;
+	return new MultiGherk(tables.flatMap((table, tableIndex) => table.tableBody.map((value) => matches.at(tableIndex).reduce((expression, [match, , index]) => expression.replace(`<${match}>`, value.cells[index]?.value ?? "<??>"), step.text))), step.location.line, step.location.column ?? 0);
 }
 
 //#endregion
