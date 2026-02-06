@@ -62,30 +62,32 @@ export function parseGherkinDocument(gherkinSource: string): ParseResult {
 const headerRegex = /(?<=<).*?(?=>)/g;
 
 export function toGherks(doc: GherkinDocument): Array<Gherk> {
-	return (
-		doc?.feature?.children
-			?.map((value) => value?.scenario)
-			?.filter((value) => value !== undefined)
+	// Handle empty documents
+	if (!doc?.feature?.children) return [];
 
-			?.flatMap((value) => {
-				// Line numbers are zero-indexed in clojure-pickler-service,
-				// but the parser is
-				value.steps.map((step) => {
-					step.location.line = step.location.line - 1;
-					return step;
-				});
+	return doc.feature.children
+		.map((value) => value.scenario)
+		.filter((scenario) => scenario !== undefined)
+		.flatMap((scenario) => {
+			// Line numbers are zero-indexed in clojure-pickler-service,
+			// but the parser isn't
+			const adjustedSteps = scenario.steps.map((step) => ({
+				...step,
+               	location: { ...step.location, line: step.location.line - 1 }
+           	}));
 
-				switch (value.keyword) {
-					case "Scenario Outline":
-						return value.steps.map((step) => toGherk(step, value.examples));
-					case "Scenario":
-						return value.steps.map((step) => toMonoGherk(step));
-					default:
-						return value.steps.map((step) => toMonoGherk(step));
-				}
-			})
-			?.filter((value) => value !== undefined) ?? []
-	);
+			
+			if (scenario.keyword === "Scenario Outline") {
+				return adjustedSteps.map((step) => toGherk(step, scenario.examples));
+			}
+			else if (scenario.keyword === "Scenario") {
+				return adjustedSteps.map((step) => toMonoGherk(step));
+			}
+			else {
+				return undefined
+			}
+		})
+		.filter((value) => value !== undefined)
 }
 
 function toMonoGherk(step: Step) {
