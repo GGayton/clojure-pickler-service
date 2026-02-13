@@ -1,3 +1,4 @@
+import { GherkinException } from "@cucumber/gherkin/dist/src/Errors.js";
 import Parser, { SyntaxNode } from "tree-sitter";
 import { Errors } from "@cucumber/gherkin";
 import { GherkinDocument } from "@cucumber/messages";
@@ -102,9 +103,6 @@ declare class LinkFailure {
 }
 type LinkResult = LinkSuccess | LinkFailure;
 declare function linkAll(cukeJar: CukeJar, gherks: Gherk[]): LinkResult[];
-//#endregion
-//#region src/index.d.ts
-type GherkinException = Errors.GherkinException;
 //#endregion
 export { Cuke, CukeJar, CukeParser, Gherk, GherkJar, GherkinException, LinkFailure, LinkResult, LinkSuccess, MonoGherk, MultiGherk, ParseResult, linkAll, parseGherkinDocument, toGherks };
 //# sourceMappingURL=index.d.mts.map

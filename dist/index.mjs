@@ -1,3 +1,4 @@
+import { GherkinException } from "@cucumber/gherkin/dist/src/Errors.js";
 import Parser, { Query } from "tree-sitter";
 import language from "tree-sitter-clojure-orchard";
 import { AstBuilder, Errors, GherkinClassicTokenMatcher, Parser as Parser$1 } from "@cucumber/gherkin";
@@ -239,5 +240,5 @@ function linkAll(cukeJar, gherks) {
 }
 
 //#endregion
-export { Cuke, CukeJar, CukeParser, GherkJar, LinkFailure, LinkSuccess, MonoGherk, MultiGherk, linkAll, parseGherkinDocument, toGherks };
+export { Cuke, CukeJar, CukeParser, GherkJar, GherkinException, LinkFailure, LinkSuccess, MonoGherk, MultiGherk, linkAll, parseGherkinDocument, toGherks };
 //# sourceMappingURL=index.mjs.map
