@@ -1,6 +1,6 @@
 import {
 	AstBuilder,
-	type Errors,
+	Errors,
 	GherkinClassicTokenMatcher,
 	Parser,
 } from "@cucumber/gherkin";
@@ -26,36 +26,19 @@ export function parseGherkinDocument(gherkinSource: string): ParseResult {
 	const builder = new AstBuilder(uuidFn);
 	const matcher = new GherkinClassicTokenMatcher();
 	const parser = new Parser(builder, matcher);
-	return {
-		gherkinDocument: parser.parse(gherkinSource),
-	};
-	//try {
-	//  return {
-	//    gherkinDocument: parser.parse(gherkinSource),
-	//  }
-	//} catch (error) {
-	//  let gherkinDocument: GherkinDocument
-	//
-	//  for (let i = 0; i < 10; i++) {
-	//    gherkinDocument = builder.getResult()
-	//    if (gherkinDocument) {
-	//      return {
-	//        gherkinDocument,
-	//        error,
-	//      }
-	//    }
-	//
-	//    try {
-	//      builder.endRule()
-	//    } catch (ignore) {
-	//      // no-op
-	//    }
-	//  }
-	//
-	//  return {
-	//    error,
-	//  }
-	//}
+	try {
+		return {
+			gherkinDocument: parser.parse(gherkinSource),
+		};
+	} catch (error: unknown) {
+		if (error instanceof Errors.GherkinException) {
+			return {
+				error: error,
+			};
+		}
+
+		throw error;
+	}
 }
 
 // Extract headers from regexes
@@ -73,21 +56,18 @@ export function toGherks(doc: GherkinDocument): Array<Gherk> {
 			// but the parser isn't
 			const adjustedSteps = scenario.steps.map((step) => ({
 				...step,
-               	location: { ...step.location, line: step.location.line - 1 }
-           	}));
+				location: { ...step.location, line: step.location.line - 1 },
+			}));
 
-			
 			if (scenario.keyword === "Scenario Outline") {
 				return adjustedSteps.map((step) => toGherk(step, scenario.examples));
-			}
-			else if (scenario.keyword === "Scenario") {
+			} else if (scenario.keyword === "Scenario") {
 				return adjustedSteps.map((step) => toMonoGherk(step));
-			}
-			else {
-				return undefined
+			} else {
+				return undefined;
 			}
 		})
-		.filter((value) => value !== undefined)
+		.filter((value) => value !== undefined);
 }
 
 function toMonoGherk(step: Step) {
@@ -110,7 +90,7 @@ function toGherk(step: Step, tables: readonly Examples[]): Gherk | undefined {
 	}
 
 	// Matches all placeholders in the text
-	const regexMatches = step.text.matchAll(headerRegex).toArray()
+	const regexMatches = step.text.matchAll(headerRegex).toArray();
 
 	// this step does not contain <.*?> -> fallback to standard
 	if (regexMatches.length === 0) return toMonoGherk(step);
@@ -131,9 +111,8 @@ function toGherk(step: Step, tables: readonly Examples[]): Gherk | undefined {
 							),
 						],
 				),
-			)
+			),
 	);
-
 
 	// Check we found an index across all tables and <.*?>
 	if (matches.some((matches) => matches.some((value) => value[2] === -1)))

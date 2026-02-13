@@ -1,4 +1,4 @@
-import * as fs from "fs";
+import * as fs from "node:fs";
 import { describe, expect, it } from "vitest";
 import { CukeJar } from "../cuke/cuke_jar.js";
 import { CukeParser } from "../cuke/cuke_parser.js";
