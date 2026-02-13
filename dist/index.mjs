@@ -1,6 +1,6 @@
 import Parser, { Query } from "tree-sitter";
 import language from "tree-sitter-clojure-orchard";
-import { AstBuilder, GherkinClassicTokenMatcher, Parser as Parser$1 } from "@cucumber/gherkin";
+import { AstBuilder, Errors, GherkinClassicTokenMatcher, Parser as Parser$1 } from "@cucumber/gherkin";
 import { IdGenerator } from "@cucumber/messages";
 
 //#region src/cuke/cuke.ts
@@ -168,7 +168,13 @@ const uuidFn = IdGenerator.uuid();
 * Incrementally parses a Gherkin Document, allowing some syntax errors to occur.
 */
 function parseGherkinDocument(gherkinSource) {
-	return { gherkinDocument: new Parser$1(new AstBuilder(uuidFn), new GherkinClassicTokenMatcher()).parse(gherkinSource) };
+	const parser = new Parser$1(new AstBuilder(uuidFn), new GherkinClassicTokenMatcher());
+	try {
+		return { gherkinDocument: parser.parse(gherkinSource) };
+	} catch (error) {
+		if (error instanceof Errors.GherkinException) return { error };
+		throw error;
+	}
 }
 const headerRegex = /(?<=<).*?(?=>)/g;
 function toGherks(doc) {
