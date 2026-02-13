@@ -103,5 +103,8 @@ declare class LinkFailure {
 type LinkResult = LinkSuccess | LinkFailure;
 declare function linkAll(cukeJar: CukeJar, gherks: Gherk[]): LinkResult[];
 //#endregion
-export { Cuke, CukeJar, CukeParser, Gherk, GherkJar, LinkFailure, LinkResult, LinkSuccess, MonoGherk, MultiGherk, ParseResult, linkAll, parseGherkinDocument, toGherks };
+//#region src/index.d.ts
+type GherkinException = Errors.GherkinException;
+//#endregion
+export { Cuke, CukeJar, CukeParser, Gherk, GherkJar, GherkinException, LinkFailure, LinkResult, LinkSuccess, MonoGherk, MultiGherk, ParseResult, linkAll, parseGherkinDocument, toGherks };
 //# sourceMappingURL=index.d.mts.map
