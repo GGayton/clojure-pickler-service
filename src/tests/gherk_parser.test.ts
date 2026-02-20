@@ -7,7 +7,6 @@ import {
 	parseGherkinDocument,
 	toGherks,
 } from "../gherk/gherk_parser.js";
-import { logger } from "./logger.js";
 
 describe("gherk parser tests", () => {
 	test("toGherk handles empty gherkin document", () => {

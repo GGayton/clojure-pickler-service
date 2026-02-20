@@ -13,8 +13,12 @@ export class GherkJar {
 			.reduce((a: number, b: number) => a + b);
 	}
 
-	public all(): IteratorObject<Gherk> {
-		return this._fileMap.values().flatMap((map) => map.values());
+	public all(): IteratorObject<[string, number, Gherk]> {
+		return this._fileMap
+			.entries()
+			.flatMap(([fileName, map]) => 
+					map.entries()
+						.map(([lineNumber, gherk]) => [fileName, lineNumber, gherk]));
 	}
 
 	public ofFile(fileName: string): Map<number, Gherk> | undefined {

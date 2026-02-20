@@ -50,21 +50,25 @@ interface Location {
 }
 //#endregion
 //#region src/gherk/gherk.d.ts
-interface Gherk extends Location {
-  getExpressions(): Generator<string>;
-}
-declare class MonoGherk implements Gherk {
-  expression: string;
+declare abstract class Gherk implements Location {
+  /** The raw gherk, may include <> */
+  text: string;
+  /** Keyword used to this gherk */
+  keyword: string;
+  /** The line number (0-indexed) of the gherk */
   line: number;
   column: number;
-  constructor(expression: string, line: number, column: number);
+  constructor(keyword: string, text: string, line: number, column: number);
+  /** Get all expressions, resolving all <> */
+  abstract getExpressions(): Generator<string>;
+  get length(): number;
+}
+declare class MonoGherk extends Gherk {
   getExpressions(): Generator<string>;
 }
-declare class MultiGherk implements Gherk {
+declare class MultiGherk extends Gherk {
   expressions: string[];
-  line: number;
-  column: number;
-  constructor(expressions: string[], line: number, column: number);
+  constructor(text: string, keyword: string, expressions: string[], line: number, column: number);
   getExpressions(): Generator<string>;
 }
 //#endregion
@@ -72,7 +76,7 @@ declare class MultiGherk implements Gherk {
 declare class GherkJar {
   private _fileMap;
   count(): number;
-  all(): IteratorObject<Gherk>;
+  all(): IteratorObject<[string, number, Gherk]>;
   ofFile(fileName: string): Map<number, Gherk> | undefined;
   updateFile(fileName: string, items: Gherk[]): void;
   find(fileName: string, line: number): Gherk | undefined;

@@ -72,6 +72,7 @@ export function toGherks(doc: GherkinDocument): Array<Gherk> {
 
 function toMonoGherk(step: Step) {
 	return new MonoGherk(
+		step.keyword,
 		step.text,
 		step.location.line,
 		step.location.column ?? 0,
@@ -119,6 +120,8 @@ function toGherk(step: Step, tables: readonly Examples[]): Gherk | undefined {
 		return undefined;
 
 	return new MultiGherk(
+		step.text,
+		step.keyword,
 		tables.flatMap((table, tableIndex) =>
 			table.tableBody.map((value) =>
 				// Replace all the <.*?> matches with data

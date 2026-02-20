@@ -113,27 +113,34 @@ var CukeParser = class CukeParser {
 
 //#endregion
 //#region src/gherk/gherk.ts
-var MonoGherk = class {
-	expression;
+var Gherk = class {
+	/** The raw gherk, may include <> */
+	text;
+	/** Keyword used to this gherk */
+	keyword;
+	/** The line number (0-indexed) of the gherk */
 	line;
 	column;
-	constructor(expression, line, column) {
-		this.expression = expression;
+	constructor(keyword, text, line, column) {
+		this.keyword = keyword;
+		this.text = text;
 		this.line = line;
 		this.column = column;
 	}
-	*getExpressions() {
-		yield this.expression;
+	get length() {
+		return this.text.length + this.keyword.length;
 	}
 };
-var MultiGherk = class {
+var MonoGherk = class extends Gherk {
+	*getExpressions() {
+		yield this.text;
+	}
+};
+var MultiGherk = class extends Gherk {
 	expressions;
-	line;
-	column;
-	constructor(expressions, line, column) {
+	constructor(text, keyword, expressions, line, column) {
+		super(text, keyword, line, column);
 		this.expressions = expressions;
-		this.line = line;
-		this.column = column;
 	}
 	*getExpressions() {
 		yield* this.expressions;
@@ -148,7 +155,11 @@ var GherkJar = class {
 		return this._fileMap.values().map((maps) => maps.size).reduce((a, b) => a + b);
 	}
 	all() {
-		return this._fileMap.values().flatMap((map) => map.values());
+		return this._fileMap.entries().flatMap(([fileName, map]) => map.entries().map(([lineNumber, gherk]) => [
+			fileName,
+			lineNumber,
+			gherk
+		]));
 	}
 	ofFile(fileName) {
 		return this._fileMap.get(fileName);
@@ -194,7 +205,7 @@ function toGherks(doc) {
 	}).filter((value) => value !== void 0);
 }
 function toMonoGherk(step) {
-	return new MonoGherk(step.text, step.location.line, step.location.column ?? 0);
+	return new MonoGherk(step.keyword, step.text, step.location.line, step.location.column ?? 0);
 }
 function toGherk(step, tables) {
 	if (tables.some((table) => table.tableHeader === void 0)) return void 0;
@@ -207,7 +218,7 @@ function toGherk(step, tables) {
 		table.tableHeader.cells.findIndex((value) => value.value === match)
 	])));
 	if (matches.some((matches) => matches.some((value) => value[2] === -1))) return void 0;
-	return new MultiGherk(tables.flatMap((table, tableIndex) => table.tableBody.map((value) => matches.at(tableIndex).reduce((expression, [match, , index]) => expression.replace(`<${match}>`, value.cells[index]?.value ?? "<??>"), step.text))), step.location.line, step.location.column ?? 0);
+	return new MultiGherk(step.text, step.keyword, tables.flatMap((table, tableIndex) => table.tableBody.map((value) => matches.at(tableIndex).reduce((expression, [match, , index]) => expression.replace(`<${match}>`, value.cells[index]?.value ?? "<??>"), step.text))), step.location.line, step.location.column ?? 0);
 }
 
 //#endregion
@@ -240,5 +251,5 @@ function linkAll(cukeJar, gherks) {
 }
 
 //#endregion
-export { Cuke, CukeJar, CukeParser, GherkJar, GherkinException, LinkFailure, LinkSuccess, MonoGherk, MultiGherk, linkAll, parseGherkinDocument, toGherks };
+export { Cuke, CukeJar, CukeParser, Gherk, GherkJar, GherkinException, LinkFailure, LinkSuccess, MonoGherk, MultiGherk, linkAll, parseGherkinDocument, toGherks };
 //# sourceMappingURL=index.mjs.map
