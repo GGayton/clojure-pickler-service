@@ -7,8 +7,8 @@ import { IdGenerator } from "@cucumber/messages";
 //#region src/cuke/cuke.ts
 function replaceGherkinSyntax(substring) {
 	switch (substring) {
-		case "{int}": return "(\\d*?)";
-		case "{double}": return "(\\d*?)";
+		case "{int}": return "([+-]?\\d*?)";
+		case "{double}": return "([+-]?([0-9]*[.])?[0-9]+)";
 		default: return "(.*)";
 	}
 }

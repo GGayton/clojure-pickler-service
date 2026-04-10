@@ -2,12 +2,9 @@ import type { SyntaxNode } from "tree-sitter";
 
 function replaceGherkinSyntax(substring: string): string {
 	switch (substring) {
-		case "{int}":
-			return "(\\d*?)";
-		case "{double}":
-			return "(\\d*?)";
-		default:
-			return "(.*)";
+		case "{int}": return "([+-]?\\d*?)";
+		case "{double}": return "([+-]?([0-9]*[.])?[0-9]+)";
+		default: return "(.*)";
 	}
 }
 
