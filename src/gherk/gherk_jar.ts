@@ -10,7 +10,7 @@ export class GherkJar {
 		return this._fileMap
 			.values()
 			.map((maps) => maps.size)
-			.reduce((a: number, b: number) => a + b);
+			.reduce((a: number, b: number) => a + b, 0);
 	}
 
 	public all(): IteratorObject<[string, number, Gherk]> {

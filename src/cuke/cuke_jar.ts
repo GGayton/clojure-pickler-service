@@ -7,7 +7,7 @@ export class CukeJar {
 		return this._fileMap
 			.values()
 			.map((x: Cuke[]) => x.length)
-			.reduce((a: number, b: number) => a + b);
+			.reduce((a: number, b: number) => a + b, 0);
 	}
 
 	public all(): IteratorObject<[string, Cuke]> {
