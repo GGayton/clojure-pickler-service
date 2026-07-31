@@ -37,6 +37,7 @@
 	"devDependencies": {
 		"@biomejs/biome": "^2.3.12",
 		"@types/node": "^24.10.4",
+		"commit-and-tag-version": "^13.1.2",
 		"nodemon": "^3.1.10",
 		"pino": "^10.3.0",
 		"pino-pretty": "^13.1.3",
