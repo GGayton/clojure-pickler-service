@@ -55,9 +55,15 @@
 		"@cucumber/messages": "^31.0.1",
 		"node-addon-api": "^8.5.0",
 		"node-gyp-build": "^4.8.4",
-		"tree-sitter-clojure-orchard": "^0.2.5"
+		"tree-sitter-clojure-orchard": "^0.2.8"
 	},
 	"peerDependencies": {
-		"tree-sitter": "^0.25.0"
+		"tree-sitter": "^0.25.1"
+	},
+	"allowScripts": {
+		"fsevents@2.3.3": true,
+		"tree-sitter-cli@0.25.10": true,
+		"tree-sitter-clojure-orchard@0.2.8": true,
+		"tree-sitter@0.25.1": true
 	}
 }
