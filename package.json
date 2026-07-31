@@ -1,13 +1,13 @@
 {
 	"name": "picklj-service",
-	"version": "1.0.10",
+	"version": "1.0.11",
 	"description": "",
 	"license": "MIT",
 	"author": "George Gayton",
 	"repository": {
-    	"type": "git",
-    	"url": "git+https://github.com/GGayton/picklj-service.git"
-  	},	
+		"type": "git",
+		"url": "git+https://github.com/GGayton/picklj-service.git"
+	},
 	"type": "module",
 	"main": "./dist/index.mjs",
 	"exports": {
