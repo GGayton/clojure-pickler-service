@@ -1,6 +1,6 @@
-# clojure-pickler-service
+# picklj-service
 
-A TypeScript library that parses Clojure step definitions and Gherkin feature files, then links them together. It is the core engine for the [clojure-pickler](https://github.com/george-gayton/clojure-pickler) language server.
+A TypeScript library that parses Clojure step definitions and Gherkin feature files, then links them together. It is the core engine for the [picklj](https://github.com/george-gayton/picklj) language server.
 
 ## Overview
 
@@ -14,7 +14,7 @@ A **linker** then matches each Gherkin step to its corresponding Clojure step de
 ## Installation
 
 ```bash
-npm install clojure-pickler-service
+npm install picklj-service
 ```
 
 ## Usage
@@ -22,7 +22,7 @@ npm install clojure-pickler-service
 ### Parsing step definitions
 
 ```ts
-import { CukeParser, CukeJar } from "clojure-pickler-service";
+import { CukeParser, CukeJar } from "picklj-service";
 
 const jar = new CukeJar();
 
@@ -34,7 +34,7 @@ jar.updateFile("steps.clj", cukes);
 ### Parsing feature files
 
 ```ts
-import { parseGherkinDocument, toGherks, GherkJar } from "clojure-pickler-service";
+import { parseGherkinDocument, toGherks, GherkJar } from "picklj-service";
 
 const jar = new GherkJar();
 
@@ -49,7 +49,7 @@ if (gherkinDocument) {
 ### Linking steps to definitions
 
 ```ts
-import { linkAll, LinkSuccess, LinkFailure } from "clojure-pickler-service";
+import { linkAll, LinkSuccess, LinkFailure } from "picklj-service";
 
 const results = linkAll(cukeJar, gherks);
 

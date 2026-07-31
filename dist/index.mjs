@@ -39,7 +39,7 @@ var Cuke = class Cuke {
 var CukeJar = class {
 	_fileMap = /* @__PURE__ */ new Map();
 	count() {
-		return this._fileMap.values().map((x) => x.length).reduce((a, b) => a + b);
+		return this._fileMap.values().map((x) => x.length).reduce((a, b) => a + b, 0);
 	}
 	all() {
 		return this._fileMap.entries().flatMap(([fileName, items]) => items.map((item) => [fileName, item]));
@@ -152,7 +152,7 @@ var MultiGherk = class extends Gherk {
 var GherkJar = class {
 	_fileMap = /* @__PURE__ */ new Map();
 	count() {
-		return this._fileMap.values().map((maps) => maps.size).reduce((a, b) => a + b);
+		return this._fileMap.values().map((maps) => maps.size).reduce((a, b) => a + b, 0);
 	}
 	all() {
 		return this._fileMap.entries().flatMap(([fileName, map]) => map.entries().map(([lineNumber, gherk]) => [
